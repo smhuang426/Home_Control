@@ -42,11 +42,7 @@ int main()
 		client_fd = accept(sock_fd, (struct sockaddr*)&client_addr, &addr_len);
 		printf("accept fd:%d\n",client_fd);
 
-		Network_server_add_link_data(client_fd, client_addr);
-		//temp = (LINK_NODE*)Network_get_link_data();
-		//printf("the fd is :%d ,%p\n",((NETWORK_CONFIG*)temp->data)->fd,((NETWORK_CONFIG*)_network_link_data->data));
-		int num = 0;//Network_number_of_connection();
-		printf("number of %d client connect\n",num);
+		//Network_server_add_link_data(client_fd, client_addr);
 		//printf("the fd is :%d ,%p\n",((NETWORK_CONFIG*)temp->data)->fd,((NETWORK_CONFIG*)_network_link_data->data));	
 		//printf("the fd is :%d ,%p\n",((NETWORK_CONFIG*)_network_link_data->data)->fd,((NETWORK_CONFIG*)_network_link_data->data));	
 		ret = pthread_create(&thr1,NULL,Network_handle,&client_fd);
@@ -54,7 +50,6 @@ int main()
 		{
 			printf("thread create fail");
 		}
-	Network_number_of_connection();		
 	}
 
 	pthread_join(thr1,NULL);
@@ -81,11 +76,7 @@ void *Network_handle(void* ptr)
 		int ret = recv(fd, recv_buf, sizeof(recv_buf), 0);
 		if (ret <= 0)
 		{
-			printf("disconnect with client");
-
-			Network_remove_link_data_by_fd(fd);			
-			int num = Network_number_of_connection();
-			printf("number of %d client connect\n",num);
+			printf("disconnect with client\n");
 
 			close(fd);
 			return ;
