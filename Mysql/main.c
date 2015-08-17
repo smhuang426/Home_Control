@@ -5,6 +5,10 @@
 //#include <my_global.h>
 #include <mysql.h>
 
+#define LOCAL_HOST 	"localhost"
+#define USER		"root"
+#define PASSWORD	"OK5074"
+
 /*define parameter*/
 pthread_t thr1,thr2;
 
@@ -16,7 +20,29 @@ void *thread_function(void* ptr);
 int main()
 {
 	int ret = 0;
-	char* str1="test1",*str2="test2";
+	char* str1="test1";
+
+	MYSQL *con = mysql_init(NULL);
+  	if (con == NULL) 
+  	{
+      		fprintf(stderr, "%s\n", mysql_error(con));
+      		exit(1);
+  	}
+
+	if (mysql_real_connect(con, LOCAL_HOST, USER, PASSWORD, NULL, 0, NULL, 0) == NULL) 
+  	{
+      		fprintf(stderr, "%s\n", mysql_error(con));
+      		mysql_close(con);
+      		exit(1);
+  	}
+
+  	if (mysql_query(con, "CREATE DATABASE testdb")) 
+ 	{
+      		fprintf(stderr, "%s\n", mysql_error(con));
+      		mysql_close(con);
+      		exit(1);
+  	}
+
 
 	printf("MySQL client version: %s\n", mysql_get_client_info());
 
