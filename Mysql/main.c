@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-//#include <my_global.h>
-#include <mysql.h>
+#include "../Library/Mysql/Ex_mysql.h"
 
 #define LOCAL_HOST 	"localhost"
 #define USER		"root"
@@ -22,21 +21,10 @@ int main()
 	int ret = 0;
 	char* str1="test1";
 
-	MYSQL *con = mysql_init(NULL);
-  	if (con == NULL) 
-  	{
-      		fprintf(stderr, "%s\n", mysql_error(con));
-      		exit(1);
-  	}
+	printf("start connect to server\n");
+	MYSQL *con = ex_mysql_init(); 
 
-	if (mysql_real_connect(con, LOCAL_HOST, USER, PASSWORD, NULL, 0, NULL, 0) == NULL) 
-  	{
-      		fprintf(stderr, "%s\n", mysql_error(con));
-      		mysql_close(con);
-      		exit(1);
-  	}
-
-  	if (mysql_query(con, "CREATE DATABASE testdb")) 
+  	if (mysql_query(con, "CREATE DATABASE testdib2")) 
  	{
       		fprintf(stderr, "%s\n", mysql_error(con));
       		mysql_close(con);
