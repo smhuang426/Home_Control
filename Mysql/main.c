@@ -24,6 +24,15 @@ int main()
 	printf("start connect to server\n");
 	MYSQL *con = ex_mysql_init(); 
 
+	ex_mysql_list_db(con);
+
+	if (ex_mysql_is_db_exist(con, "testdb")==EX_MYSQL_FAIL)
+	{
+		printf("no this db exist\n");
+	}else{
+		printf("this db exist\n");
+	}
+
   	if (mysql_query(con, "CREATE DATABASE testdib2")) 
  	{
       		fprintf(stderr, "%s\n", mysql_error(con));
