@@ -22,23 +22,28 @@ int main()
 	char* str1="test1";
 
 	printf("start connect to server\n");
-	MYSQL *con = ex_mysql_init(); 
+	MYSQL *con = ex_mysql_init_with_db(NULL); 
 
 	ex_mysql_list_db(con);
 
 	if (ex_mysql_is_db_exist(con, "testdb")==EX_MYSQL_FAIL)
 	{
-		printf("no this db exist\n");
+		ex_mysql_create_db(con, "testdb");
 	}else{
-		printf("this db exist\n");
+		ex_mysql_delete_db(con,"testdib2");
 	}
 
-  	if (mysql_query(con, "CREATE DATABASE testdib2")) 
- 	{
-      		fprintf(stderr, "%s\n", mysql_error(con));
-      		mysql_close(con);
-      		exit(1);
-  	}
+  	ex_mysql_change_db_to(con, "testdb" , true);
+	printf("current db is %s\n",ex_mysql_get_current_db());
+
+	if (ex_mysql_is_table_exist_from_db(con, "test_table","testdb")!=EX_MYSQL_SUCCESS)
+	{
+		printf("creating table\n");
+		ex_mysql_create_table_with_arg(con,"test_table","name char(20)", "no INT","description TEXT",NULL);
+	}
+	ex_mysql_show_tables_from_db(con, "testdb");
+
+	ex_mysql_select_col_from_table(con,"testdb" ,"test_table" ,"*", NULL);
 
 
 	printf("MySQL client version: %s\n", mysql_get_client_info());
