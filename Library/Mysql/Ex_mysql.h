@@ -16,6 +16,12 @@ typedef enum _EX_MYSQL_RES
 }  EX_MYSQL_RES;
 
 
+typedef enum _EX_MYSQLAND_OR
+{
+	EX_MYSQL_AND = 0,
+	EX_MYSQL_OR
+} EX_MYSQL_AND_OR;
+
 MYSQL *ex_mysql_init_with_db(char* _db);
 void ex_mysql_list_db(MYSQL *con);
 char* ex_mysql_get_current_db(void);
@@ -28,6 +34,10 @@ EX_MYSQL_RES ex_mysql_is_table_exist_from_db(MYSQL *con, char* table_name,char* 
 EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, ...);
 EX_MYSQL_RES ex_mysql_delete_table(MYSQL* con, char* table_name);
 EX_MYSQL_RES ex_mysql_select_col_from_table(MYSQL* con, char* _db ,char* _table ,char* column, ...);
+EX_MYSQL_RES ex_mysql_insert_values_to_table(MYSQL* con, char* _db,char* _table, char* values, ...);
+EX_MYSQL_RES ex_mysql_delete_values_from_table_with_muticondition(MYSQL* con, char* _db,char* _table, EX_MYSQL_AND_OR and_or ,char* values, ...);
+int ex_mysql_number_of_column_from_table(MYSQL *con , char* table);
+
 
 
 #endif

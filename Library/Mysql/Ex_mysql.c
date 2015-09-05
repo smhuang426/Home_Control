@@ -11,7 +11,7 @@ char *current_db=NULL;
 void finish_with_error(MYSQL *con);
 void set_current_db(char* _db);
 void deinit_current_db(void);
-void print_result(MYSQL* con);
+int print_result(MYSQL* con);
 
 /*implement function*/
 void set_current_db(char* _db)
@@ -238,7 +238,7 @@ EX_MYSQL_RES ex_mysql_show_tables_from_db(MYSQL* con, char* _db)
 	return ret;
 }
 
-void print_result(MYSQL* con)
+int print_result(MYSQL* con)
 {
   	MYSQL_RES *result = mysql_store_result(con);
 
@@ -251,6 +251,7 @@ void print_result(MYSQL* con)
 
 	MYSQL_ROW row;
  	MYSQL_FIELD *field;
+	int number = 0;
 
 	printf("\n------------\n");           
 
@@ -262,19 +263,21 @@ void print_result(MYSQL* con)
 			{              
 				while(field = mysql_fetch_field(result)) 
              			{
-                			printf("%s ", field->name);
-					printf("\n------------");
+                			printf("%s  ", field->name);
+				//	printf("\n------------");
              			}
              
-             			printf("\n");           
+             			printf("\n------------\n");           
           		}
           
           		printf("%s  ", row[i] ? row[i] : "NULL"); 
+			number = atoi(row[i]);
       		} 
   	}
   
   	printf("\n------------\n");
 	mysql_free_result(result);
+	return number;
 }
 
 EX_MYSQL_RES ex_mysql_is_table_exist_from_db(MYSQL *con, char* table_name,char* _db)
@@ -325,7 +328,7 @@ EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, ...)
 	create_table = (char*)malloc(512*sizeof(char));
 	strcpy(create_table,"create table ");
 	strcat(create_table, db_name);
-	strcat(create_table,"(sn integer auto_increment primary key");
+	strcat(create_table,"(sn integer auto_increment ");
 
 	va_start(arg_ptr,db_name);
 
@@ -340,7 +343,7 @@ EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, ...)
 	strcat(create_table,")");
 	va_end(arg_ptr);
 
-//	printf("[mysql table create] %s\n",create_table);
+	printf("[mysql table create] %s\n",create_table);
 
 	if (mysql_query(con, create_table))
 	{
@@ -428,5 +431,131 @@ EX_MYSQL_RES ex_mysql_select_col_from_table(MYSQL* con, char* _db ,char* _table 
 	print_result(con);
 
 	return EX_MYSQL_SUCCESS;
+}
+
+
+EX_MYSQL_RES ex_mysql_insert_values_to_table(MYSQL* con, char* _db,char* _table, char* values, ...)
+{
+	EX_MYSQL_RES ret;
+
+	ret = ex_mysql_change_db_to(con, _db, false);
+	if (ret != EX_MYSQL_SUCCESS)
+	{
+		printf("[insert_data_to_table]database:%s is not exist\n",_db);
+		return ret;
+	}
+
+	va_list arg_ptr;
+	char* insert_table,*str,str_num[25];
+	int sn =  ex_mysql_number_of_column_from_table(con , _table) + 1;
+
+	sprintf(str_num, "%d", sn);
+
+	insert_table = (char*)malloc(512*sizeof(char));
+	strcpy(insert_table,"insert into ");
+	strcat(insert_table, _table);
+	strcat(insert_table," values (");
+	strcat(insert_table, str_num);
+	strcat(insert_table,",");	
+	strcat(insert_table, values);
+
+	va_start(arg_ptr,values);
+
+	str = va_arg(arg_ptr,char*);
+	while(str != NULL)
+	{
+		strcat(insert_table,",");
+		strcat(insert_table,str);
+		str=va_arg(arg_ptr,char*);
+	}
+
+	va_end(arg_ptr);
+
+	strcat(insert_table,")");
+	printf("[insert table]%s\n",insert_table);
+	if (mysql_query(con, insert_table))
+	{
+		free(insert_table);
+      		fprintf(stderr, "%s\n", mysql_error(con));
+		return EX_MYSQL_FAIL;
+	}
+	free(insert_table);
+
+	print_result(con);
+
+	return EX_MYSQL_SUCCESS;
+}
+
+EX_MYSQL_RES ex_mysql_delete_values_from_table_with_muticondition(MYSQL* con, char* _db,char* _table, EX_MYSQL_AND_OR and_or,char* condition, ...)
+{
+	EX_MYSQL_RES ret;
+
+	ret = ex_mysql_change_db_to(con, _db, false);
+	if (ret != EX_MYSQL_SUCCESS)
+	{
+		printf("[delete_data_from_table]database:%s is not exist\n",_db);
+		return ret;
+	}
+
+	va_list arg_ptr;
+	char* delete_table,*str,logic[6];
+
+	if (and_or == EX_MYSQL_AND) strcpy(logic," and ");
+	else strcpy(logic," or ");
+
+	delete_table = (char*)malloc(512*sizeof(char));
+	strcpy(delete_table,"delete from ");
+	strcat(delete_table, _table);
+	strcat(delete_table," where ");
+	strcat(delete_table, condition);
+
+	va_start(arg_ptr,condition);
+
+	str = va_arg(arg_ptr,char*);
+	while(str != NULL)
+	{
+		strcat(delete_table,logic);
+		strcat(delete_table,str);
+		str=va_arg(arg_ptr,char*);
+	}
+
+	va_end(arg_ptr);
+
+	printf("[delete table]%s\n",delete_table);
+	if (mysql_query(con, delete_table))
+	{
+		free(delete_table);
+      		fprintf(stderr, "%s\n", mysql_error(con));
+		return EX_MYSQL_FAIL;
+	}
+	free(delete_table);
+
+	print_result(con);
+
+	return EX_MYSQL_SUCCESS;
+
+}
+
+
+int ex_mysql_number_of_column_from_table(MYSQL *con , char* table)
+{
+	char* query = (char*)malloc(256*sizeof(char));
+	int number = 0;
+
+	strcpy(query,"select COUNT(*) from ");
+	strcat(query, table);
+
+	if (mysql_query(con, query))
+	{
+		free(query);
+      		fprintf(stderr, "%s\n", mysql_error(con));
+		return number;
+	}
+
+	number = print_result(con);
+
+	free(query);
+
+	return number;
 }
 

@@ -43,6 +43,12 @@ int main()
 	}
 	ex_mysql_show_tables_from_db(con, "testdb");
 
+//	ex_mysql_insert_values_to_table(con, ex_mysql_get_current_db(),"test_table",/* "1",*/"'Noah2'","456","'no comment'",NULL);
+	ex_mysql_delete_values_from_table_with_muticondition(con, ex_mysql_get_current_db(),"test_table", EX_MYSQL_AND , "sn=1",NULL);
+
+	int num = ex_mysql_number_of_column_from_table(con , "test_table");
+	printf("column number is %d\n",num);
+
 	ex_mysql_select_col_from_table(con,"testdb" ,"test_table" ,"*", NULL);
 
 
