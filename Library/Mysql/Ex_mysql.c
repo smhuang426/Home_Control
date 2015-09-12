@@ -320,7 +320,7 @@ EX_MYSQL_RES ex_mysql_is_table_exist_from_db(MYSQL *con, char* table_name,char* 
 	return ret;
 }
 
-EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, ...)
+EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, char* pArg)
 {
 	va_list arg_ptr;
 	char* create_table,*str;
@@ -328,9 +328,10 @@ EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, ...)
 	create_table = (char*)malloc(512*sizeof(char));
 	strcpy(create_table,"create table ");
 	strcat(create_table, db_name);
-	strcat(create_table,"(sn integer auto_increment ");
+	strcat(create_table,"(");
+    strcat(create_table, pArg);
 
-	va_start(arg_ptr,db_name);
+	va_start(arg_ptr,pArg);
 
 	str = va_arg(arg_ptr,char*);
 	do

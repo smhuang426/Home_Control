@@ -1,7 +1,7 @@
 #make file
 
 CC = gcc -pthread
-INCLUDES = -I/usr/include/mysql -DBIG_JOINS=1  -fno-strict-aliasing   -g#mysql_config --cflags
+INCLUDES = -I/usr/include/mysql -I../Library/Mysql -DBIG_JOINS=1  -fno-strict-aliasing -g#mysql_config --cflags
 LIBS = -L/usr/lib/mysql -lmysqlclient -lm
 LIBRARY = ../Library/
 

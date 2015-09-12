@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "../Library/Mysql/Ex_mysql.h"
+//#include "../Library/Mysql/Ex_mysql.h"
+#include "Ex_mysql.h"
 
 #define LOCAL_HOST 	"localhost"
 #define USER		"root"
