@@ -320,7 +320,7 @@ EX_MYSQL_RES ex_mysql_is_table_exist_from_db(MYSQL *con, char* table_name,char* 
 	return ret;
 }
 
-EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, char* pArg)
+EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, char* pArg, ...)
 {
 	va_list arg_ptr;
 	char* create_table,*str;
@@ -329,7 +329,7 @@ EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, char* pAr
 	strcpy(create_table,"create table ");
 	strcat(create_table, db_name);
 	strcat(create_table,"(");
-    strcat(create_table, pArg);
+    	strcat(create_table, pArg);
 
 	va_start(arg_ptr,pArg);
 
@@ -447,17 +447,17 @@ EX_MYSQL_RES ex_mysql_insert_values_to_table(MYSQL* con, char* _db,char* _table,
 	}
 
 	va_list arg_ptr;
-	char* insert_table,*str,str_num[25];
-	int sn =  ex_mysql_number_of_column_from_table(con , _table) + 1;
+	char* insert_table,*str/*,str_num[25]*/;
+	//int sn =  ex_mysql_number_of_column_from_table(con , _table) + 1;
 
-	sprintf(str_num, "%d", sn);
+	//sprintf(str_num, "%d", sn);
 
 	insert_table = (char*)malloc(512*sizeof(char));
 	strcpy(insert_table,"insert into ");
 	strcat(insert_table, _table);
 	strcat(insert_table," values (");
-	strcat(insert_table, str_num);
-	strcat(insert_table,",");	
+	//strcat(insert_table, str_num);
+	//strcat(insert_table,",");	
 	strcat(insert_table, values);
 
 	va_start(arg_ptr,values);

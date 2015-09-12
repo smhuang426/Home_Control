@@ -31,7 +31,7 @@ EX_MYSQL_RES ex_mysql_delete_db(MYSQL* con, char* db_name);
 EX_MYSQL_RES ex_mysql_change_db_to(MYSQL* con, char* db_name, uint8_t is_create);
 EX_MYSQL_RES ex_mysql_show_tables_from_db(MYSQL* con, char* _db);
 EX_MYSQL_RES ex_mysql_is_table_exist_from_db(MYSQL *con, char* table_name,char* _db);
-EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, char* pArg);
+EX_MYSQL_RES ex_mysql_create_table_with_arg(MYSQL* con, char* db_name, char* pArg, ...);
 EX_MYSQL_RES ex_mysql_delete_table(MYSQL* con, char* table_name);
 EX_MYSQL_RES ex_mysql_select_col_from_table(MYSQL* con, char* _db ,char* _table ,char* column, ...);
 EX_MYSQL_RES ex_mysql_insert_values_to_table(MYSQL* con, char* _db,char* _table, char* values, ...);
