@@ -55,6 +55,9 @@ int main()
         printf("\n");
     }
     
+    double_array_free(input.io_array);
+    double_array_free(output.io_array);
+    
     ANN_deinit(ann);
 
 	ret = pthread_create(&thr1,NULL,thread_function,str1);

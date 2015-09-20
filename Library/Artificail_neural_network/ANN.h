@@ -52,5 +52,6 @@ void ANN_set_last_delta_weight_with_index(ANN_LIST* list, int index ,double** de
 
 ANN_IO* ANN_forward_algorithm_start(ANN_LIST* list, ANN_IO input);
 double** double_array_malloc(int row, int col);
+void double_array_free(double** double_array);
 
 #endif

@@ -354,6 +354,12 @@ double** double_array_malloc(int row, int col)
     return array;
 }
 
+void double_array_free(double** double_array)
+{
+    free(double_array);
+    double_array = NULL;
+}
+
 void matrix_multi(int row, int col, double** var1, double* var2, double* output)
 {
     int row_index = 0,col_index = 0;
@@ -389,7 +395,7 @@ ANN_IO* ANN_forward_algorithm_start(ANN_LIST* list, ANN_IO input)
     int input_index = 0;
     DLL_NODE* node = (DLL_NODE*)list->head;
     LAYER* tail_data = (LAYER*)((DLL_NODE*)list->tail)->data;
-    printf("ko\n");
+
     ANN_IO* output;
     output->io_scale = tail_data->ann_col;
     output->io_quantity = input.io_quantity;
