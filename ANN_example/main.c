@@ -56,7 +56,7 @@ int main()
     }
     
     double_array_free(input.io_array);
-    double_array_free(output.io_array);
+    double_array_free(output->io_array);
     
     ANN_deinit(ann);
 
