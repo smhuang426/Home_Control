@@ -172,6 +172,7 @@ ANN_LIST* ANN_init(int num_of_layer, ...)
         layer_data->mometum_rate = temp[(3*num_of_layer+1) + index];
         layer_data->ann_row = (int)temp[index];  //input
         layer_data->ann_col = (int)temp[index+1];//output
+        layer_data->layer_input = NULL;
         
         printf("layer%d, learing rate:%f, activation function:%d, mometum rate:%f\n",index+1,layer_data->learning_rate,layer_data->act_function,layer_data->mometum_rate);
         
@@ -380,7 +381,7 @@ void ANN_activation_function_start(double* input, double* output,int sizeof_inpu
     }
 }
 
-ANN_IO* ANN_forward_algorithm_start(ANN_LIST* list, ANN_IO input)
+ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out)
 {
     int row = 0,col = 0;
     
@@ -389,42 +390,60 @@ ANN_IO* ANN_forward_algorithm_start(ANN_LIST* list, ANN_IO input)
     if (input.io_scale != row)
     {
         printf("input size is not correct !\n");
-        return NULL;
+        //return NULL;
     }
     
     int input_index = 0;
     DLL_NODE* node = (DLL_NODE*)list->head;
     LAYER* tail_data = (LAYER*)((DLL_NODE*)list->tail)->data;
 
-    ANN_IO* output;
-    output->io_scale = tail_data->ann_col;
-    output->io_quantity = input.io_quantity;
-    output->io_array = double_array_malloc(output->io_scale, output->io_quantity);
+    ANN_IO output;
+    output.io_scale = tail_data->ann_col;
+    output.io_quantity = input.io_quantity;
+    output.io_array = double_array_malloc(output.io_scale, output.io_quantity);
     
-    printf("output scale:%d quantity:%d \n",output->io_scale,output->io_quantity);
+    printf("output scale:%d quantity:%d \n",output.io_scale,output.io_quantity);
     
     while (input_index < input.io_quantity) {
-
-        double* temp_input = input.io_array[input_index];
         
-        while (node != NULL) {
-            
-            LAYER* data = (LAYER*)node->data;
-            
-            matrix_multi(data->ann_row, data->ann_col, data->neurons, temp_input, output->io_array[input_index]);
-
-            ANN_activation_function_start(output->io_array[input_index], output->io_array[input_index], data->ann_col, data->act_function, 0);
-
-            node = node->next;
-            
-            memcpy(temp_input,output->io_array[input_index],sizeof(double)*data->ann_col);
-            
-        }
+        ANN_forward_algorithm_start(list, output.io_array[input_index], input.io_array[input_index]);
+        
         input_index++;
     }
     
     return output;
     
+}
+
+void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input)
+{
+    double* temp_input = input;
+    DLL_NODE* node = (DLL_NODE*)list->head;
+
+    while (node != NULL) {
+        
+        LAYER* data = (LAYER*)node->data;
+
+        if (data->layer_input == NULL)
+        {
+            data->layer_input = (double*)malloc(data->ann_row*sizeof(double));
+            if (data->layer_input == NULL) {
+                printf("memory is not enough\n");
+                return;
+            }
+        }
+        
+        memcpy(data->layer_input,temp_input,sizeof(double)*data->ann_row);
+        
+        matrix_multi(data->ann_row, data->ann_col, data->neurons, temp_input, output);
+        
+        ANN_activation_function_start(output, output, data->ann_col, data->act_function, 0);
+        
+        node = node->next;
+        
+        memcpy(temp_input,output,sizeof(double)*data->ann_col);
+        
+    }
 }
 
 void ANN_backward_algorithm_start(ANN_LIST* list, ANN_IO* output, int sizeof_output, uint8_t is_offline_learning)

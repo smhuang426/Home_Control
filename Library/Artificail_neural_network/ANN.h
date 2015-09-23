@@ -8,20 +8,21 @@
 
 /*struct define*/
 typedef struct LAYER{
-    int     ann_row;
-    int     ann_col;
-    double** neurons;
-    double** last_delta_weight;
-    uint8_t act_function;
-    double  learning_rate;
-    double  mometum_rate;
+    int         ann_row;
+    int         ann_col;
+    double**    neurons;
+    double**    last_delta_weight;
+    uint8_t     act_function;
+    double      learning_rate;
+    double      mometum_rate;
+    double*     layer_input;
 } LAYER;
 
 typedef struct ANN_IO
 {
-    int io_scale;
-    int io_quantity;
-    double** io_array;
+    int         io_scale;
+    int         io_quantity;
+    double**    io_array;
 } ANN_IO;
 
 typedef enum ACTIVATE_FUNCTION{
@@ -50,7 +51,8 @@ void ANN_set_activation_function_with_index(ANN_LIST* list, int index , uint8_t 
 void ANN_set_neurons_with_index(ANN_LIST* list, int index , double** neurons);
 void ANN_set_last_delta_weight_with_index(ANN_LIST* list, int index ,double** del_w);
 
-ANN_IO* ANN_forward_algorithm_start(ANN_LIST* list, ANN_IO input);
+ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out);
+void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input);
 double** double_array_malloc(int row, int col);
 void double_array_free(double** double_array);
 

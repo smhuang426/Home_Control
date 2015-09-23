@@ -17,7 +17,7 @@ int main()
 	int ret = 0;
 	char* str1="test1";
 
-    ANN_LIST* ann = ANN_init(1, 3, 2, LINEAR, 0.5, 0.0);
+    ANN_LIST* ann = ANN_init(1, 2, 3, LINEAR, 0.5, 0.0);
     
     printf("number of %d layer from list\n",ANN_get_number_of_layer(ann));
     printf("learning rate from index 0 is : %f , mometum rate: %f\n",ANN_get_learning_rate_with_layer_index(ann,0),ANN_get_mometum_rate_with_layer_index(ann,0));
@@ -38,7 +38,7 @@ int main()
     
     printf("learning rate from index 0 is : %f , mometum rate: %f\n",ANN_get_learning_rate_with_layer_index(ann,0),ANN_get_mometum_rate_with_layer_index(ann,0));
     
-    ANN_IO input;
+    ANN_IO input,expected_output;
     double *array = (double*)malloc(3*sizeof(double));
     array[0]=array[1]=array[2]=1;
     input.io_scale = 3;
@@ -46,17 +46,17 @@ int main()
     input.io_array = double_array_malloc(3, 1);
     memcpy(input.io_array[0],array,3*sizeof(double));
 
-    ANN_IO* output = ANN_forward_algorithm_start(ann, input);
+    ANN_IO output = ANN_algorithm_start(ann, input ,expected_output);
     
-    for (int i=0; i<output->io_quantity; i++) {
-        for (int j=0; j<output->io_scale; j++) {
-            printf("%f ",output->io_array[i][j]);
+    for (int i=0; i<output.io_quantity; i++) {
+        for (int j=0; j<output.io_scale; j++) {
+            printf("%f ",output.io_array[i][j]);
         }
         printf("\n");
     }
     
     double_array_free(input.io_array);
-    double_array_free(output->io_array);
+    double_array_free(output.io_array);
     
     ANN_deinit(ann);
 
