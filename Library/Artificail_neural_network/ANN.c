@@ -415,35 +415,81 @@ ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out)
     
 }
 
+void double_valuecpy(double * destination ,const double * source, int num)
+{
+    int temp_num = num,index = 0;
+    
+    while (temp_num) {
+        
+        destination[index] = source[index];
+        
+        temp_num--;
+        index++;
+    }
+}
+
 void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input)
 {
-    double* temp_input = input;
+    double* temp_input ;//input;
     DLL_NODE* node = (DLL_NODE*)list->head;
+    uint8_t is_init = 1;
+    int num_output = 0;
 
     while (node != NULL) {
         
         LAYER* data = (LAYER*)node->data;
+        
+        if (is_init)
+        {
+            is_init = 0;
+            temp_input = (double*)malloc(data->ann_row*sizeof(double));
+            if (temp_input == NULL)
+            {
+                printf("[%s]lack of memory\n",__func__);
+                return ;
+            }
+            double_valuecpy(temp_input, input ,data->ann_row);
+        }
 
         if (data->layer_input == NULL)
         {
             data->layer_input = (double*)malloc(data->ann_row*sizeof(double));
             if (data->layer_input == NULL) {
-                printf("memory is not enough\n");
+                printf("[%s]memory is not enough\n",__func__);
                 return;
             }
+        }
+        num_output = data->ann_col;
+        double *temp_output = (double*)malloc(num_output*sizeof(double));
+        if (temp_output == NULL)
+        {
+            printf("[%s]lack of memory\n",__func__);
+            return ;
         }
         
         memcpy(data->layer_input,temp_input,sizeof(double)*data->ann_row);
         
-        matrix_multi(data->ann_row, data->ann_col, data->neurons, temp_input, output);
+        matrix_multi(data->ann_row, data->ann_col, data->neurons, temp_input, temp_output);
         
-        ANN_activation_function_start(output, output, data->ann_col, data->act_function, 0);
+        ANN_activation_function_start(temp_output, temp_output, data->ann_col, data->act_function, 0);
         
         node = node->next;
         
-        memcpy(temp_input,output,sizeof(double)*data->ann_col);
+        temp_input = (double*)realloc(temp_input , sizeof(double)*num_output);
+        if (temp_input == NULL)
+        {
+            printf("[%s]lack of memory\n",__func__);
+            return ;
+        }
         
+        memcpy(temp_input,temp_output,sizeof(double)*num_output);
+        
+        free(temp_output);
     }
+    
+    memcpy(output, temp_input , sizeof(double)*num_output);
+    
+    free(temp_input);
 }
 
 void ANN_backward_algorithm_start(ANN_LIST* list, ANN_IO* output, int sizeof_output, uint8_t is_offline_learning)
