@@ -4,6 +4,8 @@
 #include <string.h>
 #include "ANN.h"
 
+#define NUMBER_INPUT  3
+#define NUMBER_OUTPUT 4
 /*define parameter*/
 pthread_t thr1;
 
@@ -17,7 +19,7 @@ int main()
 	int ret = 0;
 	char* str1="test1";
 
-    ANN_LIST* ann = ANN_init(1, 2, 3, LINEAR, 0.5, 0.0);
+    ANN_LIST* ann = ANN_init(1, NUMBER_INPUT, NUMBER_OUTPUT, LINEAR, 0.5, 0.0);
     
     printf("number of %d layer from list\n",ANN_get_number_of_layer(ann));
     printf("learning rate from index 0 is : %f , mometum rate: %f\n",ANN_get_learning_rate_with_layer_index(ann,0),ANN_get_mometum_rate_with_layer_index(ann,0));
@@ -39,13 +41,22 @@ int main()
     printf("learning rate from index 0 is : %f , mometum rate: %f\n",ANN_get_learning_rate_with_layer_index(ann,0),ANN_get_mometum_rate_with_layer_index(ann,0));
     
     ANN_IO input,expected_output;
-    double *array = (double*)malloc(3*sizeof(double));
+    double *array = (double*)malloc(NUMBER_INPUT*sizeof(double));
     array[0]=array[1]=array[2]=1;
-    input.io_scale = 3;
+    input.io_scale = NUMBER_INPUT;
     input.io_quantity = 1;
-    input.io_array = double_array_malloc(3, 1);
-    memcpy(input.io_array[0],array,3*sizeof(double));
+    input.io_array = double_array_malloc(NUMBER_INPUT, 1);
+    memcpy(input.io_array[0],array,NUMBER_INPUT*sizeof(double));
+    
+    double *array2 = (double*)malloc(NUMBER_OUTPUT*sizeof(double));
+    memset(array2, 1 , NUMBER_OUTPUT);
+    expected_output.io_scale = NUMBER_OUTPUT;
+    expected_output.io_quantity = 1;
+    expected_output.io_array = double_array_malloc(NUMBER_OUTPUT,1);
+    memcpy(expected_output.io_array, array2 , NUMBER_OUTPUT);
+    //memcpy(input.io_array[0],array,3*sizeof(double));
 
+    printf("start ann algorithm\n");
     ANN_IO output = ANN_algorithm_start(ann, input ,expected_output);
     
     for (int i=0; i<output.io_quantity; i++) {
