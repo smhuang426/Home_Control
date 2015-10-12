@@ -20,7 +20,7 @@ float PID_Integration(PID_PARA para, float input)
 
 float PID_Derivation(PID_PARA para, float input)
 {
-    float ret = (input - para.Derv.D_last_p)/T_time;
+    float ret = (input - para.Derv.D_last_p)/para.T_time;
     para.Derv.D_last_p = input;
     
     return ret;
@@ -32,7 +32,7 @@ float PID_Controller(PID_PARA para, float input)
     
     ret =   PID_Proportion(para,input) * para.P_parameter + \
             PID_Integration(para,input) * para.Integ.I_parameter + \
-            PID_Derivation(para,input) * para..Derv.D_parameter;
+            PID_Derivation(para,input) * para.Derv.D_parameter;
     
     return ret;
 }
