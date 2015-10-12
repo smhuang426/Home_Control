@@ -5,7 +5,7 @@
 #include "ANN.h"
 
 #define NUMBER_INPUT  3
-#define NUMBER_OUTPUT 4
+#define NUMBER_OUTPUT 5
 /*define parameter*/
 pthread_t thr1;
 
@@ -13,6 +13,17 @@ pthread_t thr1;
 
 /*declare function*/
 void *thread_function(void* ptr);
+
+void set_double_value_for_array(double* arr, double value,int num);
+void set_double_value_for_array(double* arr, double value,int num)
+{
+   int temp_num = num;
+
+   while(temp_num)
+   {
+	arr[--temp_num] = value;
+   }
+}
 
 int main()
 {
@@ -28,8 +39,9 @@ int main()
     ANN_get_row_and_col_with_index(ann,0,&row ,&col);
     double** neurons = ANN_get_neurons_with_index(ann, 0);
     
-    for (int i=0; i<col; i++) {
-        for (int j=0; j<row; j++) {
+int i=0,j=0;
+    for (i=0; i<col; i++) {
+        for (j=0; j<row; j++) {
             printf("%f ",neurons[i][j]);
         }
         printf("\n");
@@ -42,25 +54,26 @@ int main()
     
     ANN_IO input,expected_output;
     double *array = (double*)malloc(NUMBER_INPUT*sizeof(double));
-    array[0]=array[1]=array[2]=1;
+    //array[0]=array[1]=array[2]=1;
+    set_double_value_for_array(array, 1.0, NUMBER_INPUT);
     input.io_scale = NUMBER_INPUT;
     input.io_quantity = 1;
     input.io_array = double_array_malloc(NUMBER_INPUT, 1);
     memcpy(input.io_array[0],array,NUMBER_INPUT*sizeof(double));
     
     double *array2 = (double*)malloc(NUMBER_OUTPUT*sizeof(double));
-    memset(array2, 1 , NUMBER_OUTPUT);
+    set_double_value_for_array(array2, 1.0 , NUMBER_OUTPUT);
     expected_output.io_scale = NUMBER_OUTPUT;
     expected_output.io_quantity = 1;
     expected_output.io_array = double_array_malloc(NUMBER_OUTPUT,1);
-    memcpy(expected_output.io_array, array2 , NUMBER_OUTPUT);
+    memcpy(expected_output.io_array[0], array2 , NUMBER_OUTPUT*sizeof(double));
     //memcpy(input.io_array[0],array,3*sizeof(double));
 
     printf("start ann algorithm\n");
     ANN_IO output = ANN_algorithm_start(ann, input ,expected_output);
     
-    for (int i=0; i<output.io_quantity; i++) {
-        for (int j=0; j<output.io_scale; j++) {
+    for (i=0; i<output.io_quantity; i++) {
+        for (j=0; j<output.io_scale; j++) {
             printf("%f ",output.io_array[i][j]);
         }
         printf("\n");

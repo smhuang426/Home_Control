@@ -3,7 +3,7 @@
 
 CC = gcc -pthread
 LIBRARY = ../Library
-INCLUDES = -I../Library/Artificail_neural_network/ -In
+INCLUDES = -I../Library/Artificail_neural_network/ -lm
 
 obj:main.c D_linked_list.o ANN.o
 	@$(CC) main.c D_linked_list.o ANN.o -o main $(INCLUDES)

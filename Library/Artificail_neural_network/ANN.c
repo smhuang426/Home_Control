@@ -389,7 +389,7 @@ ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out)
     
     if (input.io_scale != row)
     {
-        printf("input size is not correct !\n");
+        printf("input size is not correct %d , %d !\n",input.io_scale,row);
         //return NULL;
     }
     
@@ -397,17 +397,30 @@ ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out)
     DLL_NODE* node = (DLL_NODE*)list->head;
     LAYER* tail_data = (LAYER*)((DLL_NODE*)list->tail)->data;
 
-    ANN_IO output;
-    output.io_scale = tail_data->ann_col;
-    output.io_quantity = input.io_quantity;
+    ANN_IO output,error;
+    error.io_scale = output.io_scale = tail_data->ann_col;
+    error.io_quantity = output.io_quantity = input.io_quantity;
     output.io_array = double_array_malloc(output.io_scale, output.io_quantity);
+    error.io_array = double_array_malloc(error.io_scale, error.io_quantity);
+
+    if (expected_out.io_scale != output.io_scale)
+    {
+        printf("expected output scale is not correct\n");
+        return output;
+    }
+
+    if (input.io_quantity != expected_out.io_quantity)
+    {
+        printf("input quantity and output quatity is difference\n");
+        return output;
+    }
     
     printf("output scale:%d quantity:%d \n",output.io_scale,output.io_quantity);
     
     while (input_index < input.io_quantity) {
         
         ANN_forward_algorithm_start(list, output.io_array[input_index], input.io_array[input_index]);
-        
+        ANN_error_calculate(output.io_array[input_index], expected_out.io_array[input_index], error.io_scale, error.io_array[input_index]);
         input_index++;
     }
     
@@ -490,6 +503,23 @@ void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input)
     memcpy(output, temp_input , sizeof(double)*num_output);
     
     free(temp_input);
+}
+
+void ANN_error_calculate(double* output, double* expected_output, int size, double* error)
+{
+    int temp_size = size;
+
+    while(temp_size)
+    {
+	temp_size--;
+	error[temp_size] = expected_output[temp_size] - output[temp_size];
+    }
+int i =0;
+for (i=0;i<size;i++)
+{
+	printf("error:%f ",error[i]);
+}
+printf("\n");
 }
 
 void ANN_backward_algorithm_start(ANN_LIST* list, ANN_IO* output, int sizeof_output, uint8_t is_offline_learning)
