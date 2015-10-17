@@ -36,6 +36,8 @@ typedef DLL_LIST ANN_LIST;
 /*global function define*/
 ANN_LIST* ANN_init(int num_of_layer, ...);
 void ANN_deinit(ANN_LIST* list);
+void ANN_IO_init(int scale, int quantity, ANN_IO* outcome);
+void ANN_IO_deinit(ANN_IO* input);
 
 int ANN_get_number_of_layer(ANN_LIST* list);
 double ANN_get_learning_rate_with_layer_index(ANN_LIST* list,int index);
@@ -54,7 +56,9 @@ void ANN_set_last_delta_weight_with_index(ANN_LIST* list, int index ,double** de
 ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out);
 void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input);
 void ANN_error_calculate(double* output, double* expected_output, int size, double* error);
+void ANN_backward_algorithm_start(ANN_LIST* list, double* error);
 double** double_array_malloc(int row, int col);
 void double_array_free(double** double_array);
+void set_double_value_for_array(double* arr, double value,int num);
 
 #endif

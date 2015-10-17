@@ -12,9 +12,20 @@ uint8_t has_seed = 0;
 double hyperbolic_tangent(double _input);
 double diff_hyperbolic_tangent(double _back_output);
 double** double_array_malloc(int row, int col);
-void matrix_multi(int row, int col, double** var1, double* var2, double* output);
+void matrix_multi1(int row, int col, double** var1, double* var2, double* output);
+void set_double_value_for_array(double* arr, double value,int num);
 
 /*implement function*/
+void set_double_value_for_array(double* arr, double value,int num)
+{
+    int temp_num = num;
+    
+    while(temp_num)
+    {
+        arr[--temp_num] = value;
+    }
+}
+
 double hyperbolic_tangent(double _input)
 {
     return 1.716*(1 - exp (-0.667*_input))/(1 - exp (-0.667*_input));
@@ -123,6 +134,33 @@ double** ANN_neurons_init(int row, int col)
     }
     
     return neurons;
+}
+
+void ANN_IO_init(int scale, int quantity, ANN_IO* outcome)
+{
+    double *array = (double*)malloc(scale*sizeof(double));
+    set_double_value_for_array(array, 1.0, scale);
+    outcome->io_scale = scale;
+    outcome->io_quantity = quantity;
+    outcome->io_array = double_array_malloc(scale, quantity);
+    
+    if (outcome->io_array == NULL)
+    {
+        printf("[%s]allocate fail\n",__func__);
+        return;
+    }
+    
+    int i=0;
+    for (; i<quantity; i++) {
+        memcpy(outcome->io_array[0],array,scale*sizeof(double));
+    }
+    free(array);
+}
+
+void ANN_IO_deinit(ANN_IO* input)
+{
+    double_array_free(input->io_array);
+    input->io_array = NULL;
 }
 
 void ANN_neurons_deinit(double** neurons)
@@ -361,7 +399,7 @@ void double_array_free(double** double_array)
     double_array = NULL;
 }
 
-void matrix_multi(int row, int col, double** var1, double* var2, double* output)
+void matrix_multi1(int row, int col, double** var1, double* var2, double* output)
 {
     int row_index = 0,col_index = 0;
     
@@ -372,6 +410,41 @@ void matrix_multi(int row, int col, double** var1, double* var2, double* output)
     }
     
 }
+
+void matrix_multi1_with_transpose(int row, int col, double** var1, double* var2, double* output)
+{
+    int row_index = 0,col_index = 0;
+
+    for (row_index = 0; row_index<row; row_index++) {
+        for  (col_index = 0; col_index<col; col_index++){
+            output[row_index] = output[row_index] + var1[col_index][row_index]*var2[col_index];
+        }
+    }
+    
+}
+
+void matrix_multi2(int row, int col, double* var1, double* var2, double** output)
+{
+    int row_index = 0,col_index = 0;
+    
+    for (col_index = 0; col_index<col; col_index++) {
+        for (row_index = 0; row_index<row; row_index++) {
+            output[col_index][row_index] = var1[row_index]*var2[col_index];
+        }
+    }
+    
+}
+
+void matrix_multi3(int row, double var1, double* var2, double* output)
+{
+    int row_index = 0;
+    
+    for (row_index = 0; row_index<row; row_index++) {
+        output[row_index] = var1*var2[row_index];
+    }
+    
+}
+
 
 void ANN_activation_function_start(double* input, double* output,int sizeof_input, uint8_t _type,uint8_t is_backward)
 {
@@ -393,7 +466,6 @@ ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out)
         //return NULL;
     }
     
-    int input_index = 0;
     DLL_NODE* node = (DLL_NODE*)list->head;
     LAYER* tail_data = (LAYER*)((DLL_NODE*)list->tail)->data;
 
@@ -417,10 +489,17 @@ ANN_IO ANN_algorithm_start(ANN_LIST* list, ANN_IO input, ANN_IO expected_out)
     
     printf("output scale:%d quantity:%d \n",output.io_scale,output.io_quantity);
     
+    int input_index = 0;
     while (input_index < input.io_quantity) {
         
         ANN_forward_algorithm_start(list, output.io_array[input_index], input.io_array[input_index]);
         ANN_error_calculate(output.io_array[input_index], expected_out.io_array[input_index], error.io_scale, error.io_array[input_index]);
+        input_index++;
+    }
+    
+    input_index = 0;
+    while (input_index < input.io_quantity) {
+        ANN_backward_algorithm_start(list, error.io_array[input_index]);
         input_index++;
     }
     
@@ -482,7 +561,7 @@ void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input)
         
         memcpy(data->layer_input,temp_input,sizeof(double)*data->ann_row);
         
-        matrix_multi(data->ann_row, data->ann_col, data->neurons, temp_input, temp_output);
+        matrix_multi1(data->ann_row, data->ann_col, data->neurons, temp_input, temp_output);
         
         ANN_activation_function_start(temp_output, temp_output, data->ann_col, data->act_function, 0);
         
@@ -522,7 +601,93 @@ for (i=0;i<size;i++)
 printf("\n");
 }
 
-void ANN_backward_algorithm_start(ANN_LIST* list, ANN_IO* output, int sizeof_output, uint8_t is_offline_learning)
+void ANN_neurons_update(LAYER* layer, double **delta_weight)
 {
+    int row = layer->ann_row, col = layer->ann_col, row_index = 0 , col_index = 0;
+    double lr = layer->learning_rate, mr = layer->mometum_rate;
+
+    if (mr == 0)
+    {
+        for (col_index = 0; col_index < col; col_index++) {
+            for (row_index = 0; row_index < row; row_index++) {
+                layer->neurons[col_index][row_index] = layer->neurons[col_index][row_index] + lr*delta_weight[col_index][row_index];
+            }
+        }
+    }else{
+        for (col_index = 0; col_index < col; col_index++) {
+            for (row_index = 0; row_index < row; row_index++) {
+                layer->neurons[col_index][row_index] = layer->neurons[col_index][row_index] + lr*delta_weight[col_index][row_index] + mr*layer->last_delta_weight[col_index][row_index];
+            }
+        }
+    }
+}
+
+void ANN_backward_algorithm_start(ANN_LIST* list, double* error)
+{
+    double* temp_out ;
+    DLL_NODE* node = (DLL_NODE*)list->tail;
+    uint8_t is_init = 1;
+
+    while (1) {
+        LAYER* data = (LAYER*)node->data;
+        double** delta_w = double_array_malloc(data->ann_row, data->ann_col);
+        
+        if (delta_w == NULL)
+        {
+            printf("[%s] delta_w array allocate fail\n",__func__);
+            return;
+        }
+        
+        if (is_init == 1)
+        {
+            is_init = 0;
+            
+            temp_out = (double*)malloc(data->ann_col*sizeof(double));
+            if (temp_out == NULL)
+            {
+                printf("[%s] temp_out array allocate fail\n",__func__);
+                return ;
+            }
+            
+            matrix_multi3(data->ann_col, -1.0, error, temp_out);
+        }
+        
+        //matrix_multi3(data->ann_col, data->learning_rate, temp_out, temp_out);
+        ANN_activation_function_start(temp_out, temp_out, data->ann_col, data->act_function, 1);
+        matrix_multi2(data->ann_row, data->ann_col, data->layer_input, temp_out, delta_w);
+        
+        //calculate error for previous layer
+        if (node->previous != NULL)
+        {
+            double *out = (double*)malloc(data->ann_col*sizeof(double));
+            memcpy(out, temp_out, data->ann_col);
+        
+            temp_out = (double*)realloc(temp_out , sizeof(double)*data->ann_row);
+            if (temp_out == NULL)
+            {
+                printf("[%s]lack of memory\n",__func__);
+                return ;
+            }
+        
+            matrix_multi1_with_transpose(data->ann_row, data->ann_col, data->neurons, out, temp_out);
+            free(out);
+        }
+        // end of calculate
+
+        //update neurons
+        ANN_neurons_update(data, delta_w);
+        
+        double_array_free(delta_w);
+        
+        if (node->previous == NULL)
+        {
+            goto END;
+        }
+
+        node = node->previous;
+    }
+    
+END:
+    free(temp_out);
     
 }

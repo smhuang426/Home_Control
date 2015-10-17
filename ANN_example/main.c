@@ -14,17 +14,6 @@ pthread_t thr1;
 /*declare function*/
 void *thread_function(void* ptr);
 
-void set_double_value_for_array(double* arr, double value,int num);
-void set_double_value_for_array(double* arr, double value,int num)
-{
-   int temp_num = num;
-
-   while(temp_num)
-   {
-	arr[--temp_num] = value;
-   }
-}
-
 int main()
 {
 	int ret = 0;
@@ -53,22 +42,10 @@ int i=0,j=0;
     printf("learning rate from index 0 is : %f , mometum rate: %f\n",ANN_get_learning_rate_with_layer_index(ann,0),ANN_get_mometum_rate_with_layer_index(ann,0));
     
     ANN_IO input,expected_output;
-    double *array = (double*)malloc(NUMBER_INPUT*sizeof(double));
-    //array[0]=array[1]=array[2]=1;
-    set_double_value_for_array(array, 1.0, NUMBER_INPUT);
-    input.io_scale = NUMBER_INPUT;
-    input.io_quantity = 1;
-    input.io_array = double_array_malloc(NUMBER_INPUT, 1);
-    memcpy(input.io_array[0],array,NUMBER_INPUT*sizeof(double));
-    
-    double *array2 = (double*)malloc(NUMBER_OUTPUT*sizeof(double));
-    set_double_value_for_array(array2, 1.0 , NUMBER_OUTPUT);
-    expected_output.io_scale = NUMBER_OUTPUT;
-    expected_output.io_quantity = 1;
-    expected_output.io_array = double_array_malloc(NUMBER_OUTPUT,1);
-    memcpy(expected_output.io_array[0], array2 , NUMBER_OUTPUT*sizeof(double));
-    //memcpy(input.io_array[0],array,3*sizeof(double));
 
+    ANN_IO_init(NUMBER_INPUT, 1, &input);
+    ANN_IO_init(NUMBER_OUTPUT, 1, &expected_output);
+    
     printf("start ann algorithm\n");
     ANN_IO output = ANN_algorithm_start(ann, input ,expected_output);
     
@@ -78,6 +55,18 @@ int i=0,j=0;
         }
         printf("\n");
     }
+    printf("end of output value\n\nnerons has updates as:\n");
+    
+    double** neurons2 = ANN_get_neurons_with_index(ann, 0);
+
+    for (i=0; i<col; i++) {
+        for (j=0; j<row; j++) {
+            printf("%f ",neurons2[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    
     
     double_array_free(input.io_array);
     double_array_free(output.io_array);
