@@ -5,7 +5,7 @@
 #include "ANN.h"
 
 #define NUMBER_INPUT  3
-#define NUMBER_OUTPUT 5
+#define NUMBER_OUTPUT 2
 /*define parameter*/
 pthread_t thr1;
 
@@ -19,7 +19,7 @@ int main()
 	int ret = 0;
 	char* str1="test1";
 
-    ANN_LIST* ann = ANN_init(1, NUMBER_INPUT, NUMBER_OUTPUT, LINEAR, 0.5, 0.0);
+    ANN_LIST* ann = ANN_init(2, NUMBER_INPUT, 5,NUMBER_OUTPUT, LINEAR, LINEAR,0.5,0.1, 0.0,0.0);
     
     printf("number of %d layer from list\n",ANN_get_number_of_layer(ann));
     printf("learning rate from index 0 is : %f , mometum rate: %f\n",ANN_get_learning_rate_with_layer_index(ann,0),ANN_get_mometum_rate_with_layer_index(ann,0));
@@ -27,11 +27,21 @@ int main()
     int row=0,col=0;
     ANN_get_row_and_col_with_index(ann,0,&row ,&col);
     double** neurons = ANN_get_neurons_with_index(ann, 0);
+    double** neurons_index1 = ANN_get_neurons_with_index(ann, 1);
     
 int i=0,j=0;
     for (i=0; i<col; i++) {
         for (j=0; j<row; j++) {
             printf("%f ",neurons[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    
+    ANN_get_row_and_col_with_index(ann,1,&row ,&col);
+    for (i=0; i<col; i++) {
+        for (j=0; j<row; j++) {
+            printf("%f ",neurons_index1[i][j]);
         }
         printf("\n");
     }
@@ -58,7 +68,7 @@ int i=0,j=0;
     printf("end of output value\n\nnerons has updates as:\n");
     
     double** neurons2 = ANN_get_neurons_with_index(ann, 0);
-
+    ANN_get_row_and_col_with_index(ann,0,&row ,&col);
     for (i=0; i<col; i++) {
         for (j=0; j<row; j++) {
             printf("%f ",neurons2[i][j]);
@@ -67,6 +77,15 @@ int i=0,j=0;
     }
     printf("\n");
     
+    double** neurons2_index1 = ANN_get_neurons_with_index(ann, 1);
+    ANN_get_row_and_col_with_index(ann,1,&row ,&col);
+    for (i=0; i<col; i++) {
+        for (j=0; j<row; j++) {
+            printf("%f ",neurons2_index1[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
     
     double_array_free(input.io_array);
     double_array_free(output.io_array);

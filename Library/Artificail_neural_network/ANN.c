@@ -558,6 +558,7 @@ void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input)
             printf("[%s]lack of memory\n",__func__);
             return ;
         }
+        set_double_value_for_array(temp_output, 0.0, num_output);
         
         memcpy(data->layer_input,temp_input,sizeof(double)*data->ann_row);
         
@@ -575,13 +576,15 @@ void ANN_forward_algorithm_start(ANN_LIST* list, double* output, double* input)
         }
         
         memcpy(temp_input,temp_output,sizeof(double)*num_output);
-        
+
         free(temp_output);
+        temp_output = NULL;
     }
     
     memcpy(output, temp_input , sizeof(double)*num_output);
     
     free(temp_input);
+    temp_input = NULL;
 }
 
 void ANN_error_calculate(double* output, double* expected_output, int size, double* error)
@@ -610,13 +613,13 @@ void ANN_neurons_update(LAYER* layer, double **delta_weight)
     {
         for (col_index = 0; col_index < col; col_index++) {
             for (row_index = 0; row_index < row; row_index++) {
-                layer->neurons[col_index][row_index] = layer->neurons[col_index][row_index] + lr*delta_weight[col_index][row_index];
+                layer->neurons[col_index][row_index] = layer->neurons[col_index][row_index] - lr*delta_weight[col_index][row_index];
             }
         }
     }else{
         for (col_index = 0; col_index < col; col_index++) {
             for (row_index = 0; row_index < row; row_index++) {
-                layer->neurons[col_index][row_index] = layer->neurons[col_index][row_index] + lr*delta_weight[col_index][row_index] + mr*layer->last_delta_weight[col_index][row_index];
+                layer->neurons[col_index][row_index] = layer->neurons[col_index][row_index] - (lr*delta_weight[col_index][row_index] + mr*layer->last_delta_weight[col_index][row_index]);
             }
         }
     }
@@ -648,7 +651,7 @@ void ANN_backward_algorithm_start(ANN_LIST* list, double* error)
                 printf("[%s] temp_out array allocate fail\n",__func__);
                 return ;
             }
-            
+            set_double_value_for_array(temp_out, 0.0, data->ann_col);
             matrix_multi3(data->ann_col, -1.0, error, temp_out);
         }
         
@@ -660,7 +663,8 @@ void ANN_backward_algorithm_start(ANN_LIST* list, double* error)
         if (node->previous != NULL)
         {
             double *out = (double*)malloc(data->ann_col*sizeof(double));
-            memcpy(out, temp_out, data->ann_col);
+            set_double_value_for_array(out, 0.0, data->ann_col);
+            double_valuecpy(out, temp_out, data->ann_col);
         
             temp_out = (double*)realloc(temp_out , sizeof(double)*data->ann_row);
             if (temp_out == NULL)
@@ -668,9 +672,11 @@ void ANN_backward_algorithm_start(ANN_LIST* list, double* error)
                 printf("[%s]lack of memory\n",__func__);
                 return ;
             }
+            set_double_value_for_array(temp_out, 0.0, data->ann_col);
         
             matrix_multi1_with_transpose(data->ann_row, data->ann_col, data->neurons, out, temp_out);
             free(out);
+            out = NULL;
         }
         // end of calculate
 
@@ -689,5 +695,6 @@ void ANN_backward_algorithm_start(ANN_LIST* list, double* error)
     
 END:
     free(temp_out);
+    temp_out = NULL;
     
 }
