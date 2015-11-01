@@ -15,7 +15,7 @@ typedef struct FIR_CONFIG{
     int         fc2;
     double*     coeficient;
     double*     input;
-} FIR_CONFI;
+} FIR_CONFIG;
 
 typedef enum WINDOW_TYPE{
     RECT   =0x01,
@@ -33,5 +33,7 @@ typedef enum FILTER_TYPE{
 } FILTER_TYPE;
 
 /*global function define*/
+void FIR_init(FIR_CONFIG* config, uint8_t filter_type, ...);
+double FIR_start_filter(FIR_CONFIG* config, double input);
 
 #endif
