@@ -316,4 +316,20 @@ double FIR_start_filter(FIR_CONFIG* config, double input)
     return output;
 }
 
+void FIR_deinit(FIR_CONFIG* config)
+{
+    free(config->coeficient);
+    free(config->input);
+    
+    config->coeficient = NULL;
+    config->input = NULL;
+    
+    config->filter_type = 0;
+    config->window_type = 0;
+    config->order = 0;
+    config->fs = 0;
+    config->fc1 = 0;
+    config->fc2 = 0;
+}
+
 

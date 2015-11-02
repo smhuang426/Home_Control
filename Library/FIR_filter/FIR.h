@@ -35,5 +35,6 @@ typedef enum FILTER_TYPE{
 /*global function define*/
 void FIR_init(FIR_CONFIG* config, uint8_t filter_type, ...);
 double FIR_start_filter(FIR_CONFIG* config, double input);
+void FIR_deinit(FIR_CONFIG* config);
 
 #endif
