@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
+#include "D_linked_list.h"
 
 /*struct define*/
 typedef struct FIR_CONFIG{
@@ -14,7 +15,7 @@ typedef struct FIR_CONFIG{
     int         fc1;
     int         fc2;
     double*     coeficient;
-    double*     input;
+    DLL_LIST*   input;
 } FIR_CONFIG;
 
 typedef enum WINDOW_TYPE{

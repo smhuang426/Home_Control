@@ -20,6 +20,8 @@ int main()
 
     FIR_init(&config, HIGHPASS, HANN, 10, 20000, 2500);
     printf("\nstart:%f\n",FIR_start_filter(&config, 1.0));
+    printf("\nstart:%f\n",FIR_start_filter(&config, 1.0));
+    printf("\nstart:%f\n",FIR_start_filter(&config, 1.0));
     //FIR_start_filter(&config, 0.0);
     
     FIR_deinit(&config);

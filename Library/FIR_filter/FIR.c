@@ -252,13 +252,38 @@ void FIR_init(FIR_CONFIG* config, uint8_t filter_type, ...)
     //memset(config->coeficient,0x00,config->order+1);
     double_fill(config->coeficient, 0.0, config->order+1);
     
-    config->input = (double*)malloc((config->order+1)*sizeof(double));
-    if (config->input == NULL)
+    
+    index = config->order+1;
+
+    while (index > 0) {
+        
+        double *data = (double*)calloc(1,sizeof(double));//calloc(1, sizeof(double));
+        
+        
+        if (config->input == NULL)
+        {
+            printf("ko\n");
+            DLL_init_list_with_data(&config->input, data);
+            
+            if (config->input == NULL)
+            {
+                printf("input allocate fail\n");
+                return ;
+            }
+        }
+        else
+        {
+            printf("ok\n");
+            DLL_insert_data_to_tail(config->input, data);
+        }
+        index--;
+    }
+    //printf("number of input:%i\n",((DLL_LIST*)config->input)->num_node);
+    if ((config->input == NULL) || (((DLL_LIST*)config->input)->num_node != config->order+1))
     {
+        printf("allocate input fail\n");
         return ;
     }
-    //memset(config->input,0x00,config->order+1);
-    double_fill(config->input, 0.0, config->order+1);
     
     printf("the result of coeficient :\n");
     for (index = 0; index < (config->order+1) ; index++)
@@ -275,41 +300,33 @@ double FIR_start_filter(FIR_CONFIG* config, double input)
     int index = config->order;
     double output = 0.0;
     
-    //update input array
-    while (index >= 0) {
-        
-        if (index == 0)
-        {
-            config->input[index] = input;
-            //printf("config->input:%f\n",config->input[index]);
-        }
-        else
-        {
-            config->input[index] = config->input[index-1];
-            //printf("config->input:%f\n",config->input[index]);
-        }
-        //output = output + config->input[index] * config->coeficient[index];
-        index--;
-    }
+    DLL_insert_data_to_head(config->input, &input);
+    DLL_remove_tail(&config->input);
     
     int num_of_array = config->order ;
     index = 0;
+    
+    DLL_NODE*   head = ((DLL_LIST*)config->input)->head;
+    DLL_NODE*   tail = ((DLL_LIST*)config->input)->tail;
     
     while (1) {
         
         switch (num_of_array - (2*index)) {
             case 0:
-                output = output + (config->input[index] * config->coeficient[index]);
-                
+                //output = output + (config->input[index] * config->coeficient[index]);
+                output = output + (*((double*)head->data) * config->coeficient[index]);
             case -1:
                 return output;
                 break;
                 
             default:
-                output = output + ((config->input[index] + config->input[num_of_array - index]) * config->coeficient[index]);
+                //output = output + ((config->input[index] + config->input[num_of_array - index]) * config->coeficient[index]);
+                output = output + (*((double*)head->data) + *((double*)tail->data))*config->coeficient[index];
                 break;
         }
         
+        head = head->next;
+        tail = tail->previous;
         index++;
     }
     
@@ -319,7 +336,8 @@ double FIR_start_filter(FIR_CONFIG* config, double input)
 void FIR_deinit(FIR_CONFIG* config)
 {
     free(config->coeficient);
-    free(config->input);
+    //free(config->input);
+    DLL_free_list(&config->input);
     
     config->coeficient = NULL;
     config->input = NULL;
