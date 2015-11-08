@@ -1,49 +1,54 @@
 #include "PID.h"
+#include <stdio.h>
 
+float PID_Proportion(PID_PARA* para, float input);
+float PID_Integration(PID_PARA* para, float input);
+float PID_Derivation(PID_PARA* para, float input);
+float PID_Controller(PID_PARA* para, float input);
 
-float PID_Proportion(PID_PARA para, float input);
-float PID_Integration(PID_PARA para, float input);
-float PID_Derivation(PID_PARA para, float input);
-float PID_Controller(PID_PARA para, float input);
-
-float PID_Proportion(PID_PARA para, float input)
+float PID_Proportion(PID_PARA* para, float input)
 {
     return input;
 }
 
-float PID_Integration(PID_PARA para, float input)
+float PID_Integration(PID_PARA* para, float input)
 {
-    para.Integ.I_sum = para.Integ.I_sum + (input * para.T_time);
-    
-    return para.I_sum;
+    para->Integ.I_sum = para->Integ.I_sum + (input * para->T_time);
+
+    return para->Integ.I_sum;
 }
 
-float PID_Derivation(PID_PARA para, float input)
+float PID_Derivation(PID_PARA* para, float input)
 {
-    float ret = (input - para.Derv.D_last_p)/para.T_time;
-    para.Derv.D_last_p = input;
+    float ret = (input - para->Derv.D_last_p)/para->T_time;
+    para->Derv.D_last_p = input;
     
     return ret;
 }
 
-float PID_Controller(PID_PARA para, float input)
+float PID_Controller(PID_PARA* para, float input)
 {
     float ret = 0;
     
-    ret =   PID_Proportion(para,input) * para.P_parameter + \
-            PID_Integration(para,input) * para.Integ.I_parameter + \
-            PID_Derivation(para,input) * para.Derv.D_parameter;
+    ret =   PID_Proportion(para,input) * para->P_parameter + \
+            PID_Integration(para,input) * para->Integ.I_parameter + \
+            PID_Derivation(para,input) * para->Derv.D_parameter;
+    
+    //printf("I:%f,D:%f\n",para->Integ.I_parameter,para->Derv.D_parameter);
     
     return ret;
 }
 
 void PID_setup_controller(CONTROLLER *ctrl, float P_par, float I_par, float D_par , float T_par, float expected_o)
 {
-    ctrl->Para.P_parameter = P_par;
-    ctrl->Para.Integ.I_parameter = I_par;
-    ctrl->Para.Derv.D_parameter = D_par;
-    ctrl->Para.T_time = T_par;
+    ctrl->para.P_parameter = P_par;
+    ctrl->para.Integ.I_parameter = I_par;
+    ctrl->para.Derv.D_parameter = D_par;
+    ctrl->para.T_time = T_par;
     ctrl->Expected_output = expected_o;
+    
+    ctrl->para.Integ.I_sum = 0;
+    ctrl->para.Derv.D_last_p = 0;
 }
 
 void PID_set_expected_output(CONTROLLER *ctrl, float expected_o)
@@ -53,14 +58,21 @@ void PID_set_expected_output(CONTROLLER *ctrl, float expected_o)
 
 void PID_set_time_period(CONTROLLER *ctrl, float T_par)
 {
-    ctrl->Para.T_time = T_par;
+    ctrl->para.T_time = T_par;
+}
+
+void PID_set_pid_parameter(CONTROLLER *ctrl, float P_par, float I_par, float D_par)
+{
+    ctrl->para.P_parameter = P_par;
+    ctrl->para.Integ.I_parameter = I_par;
+    ctrl->para.Derv.D_parameter = D_par;
 }
 
 void PID_activate(CONTROLLER *ctrl, float feedback, float *output)
 {
     float err = ctrl->Expected_output - feedback ;
-    
-    *output = PID_Controller(ctrl->Para, err);
+
+    *output = PID_Controller(&ctrl->para, err);
     
 }
 
@@ -71,7 +83,7 @@ void PID_activate_with_limitation(CONTROLLER *ctrl, float feedback, float *outpu
     //normalization
     err = err/ctrl->Expected_output;
     
-    temp_out = PID_Controller(ctrl->Para, err);
+    temp_out = PID_Controller(&ctrl->para, err);
     
     if (temp_out > up_limit)
     {
