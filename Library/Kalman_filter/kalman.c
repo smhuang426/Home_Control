@@ -118,7 +118,7 @@ void array_2d_multiple_with_transport_1(double** a, double** b, double** out)
     
 }
 
-void array_2d_multiple_2(double* b, double** a, double* out)
+void array_2d_multiple_2(double** a, double* b, double* out)
 {
     if ((a == NULL) || (b == NULL) || (out == NULL))
     {
@@ -130,18 +130,30 @@ void array_2d_multiple_2(double* b, double** a, double* out)
     
 }
 
-void array_2d_multiple_2(double* a, double* b, double* out)
+void array_2d_multiple_with_22(double* a, double** b, double* out)
 {
     if ((a == NULL) || (b == NULL) || (out == NULL))
     {
         return;
     }
     
-    out[0] = a[0]*b[0] + a[0]*b[1];
+    out[0] = a[0]*b[0][0] + a[1]*b[1][0];
+    out[1] = a[0]*b[0][1] + a[1]*b[1][1];
     
 }
 
-void array_2d_multiple_3(double* a, double* b, double** out)
+void array_2d_multiple_3(double* a, double* b, double* out)
+{
+    if ((a == NULL) || (b == NULL) || (out == NULL))
+    {
+        return;
+    }
+    
+    out[0] = a[0]*b[0] + a[1]*b[1];
+    
+}
+
+void array_2d_multiple_4(double* a, double* b, double** out)
 {
     if ((a == NULL) || (b == NULL) || (out == NULL))
     {
@@ -168,6 +180,19 @@ void array_2d_add(double** a,double** b,double** out)
     out[1][1] = a[1][1] + b[1][1];
 }
 
+void array_2d_sub(double** a,double** b,double** out)
+{
+    if ((a == NULL) || (b == NULL) || (out == NULL))
+    {
+        return;
+    }
+    
+    out[0][0] = a[0][0] - b[0][0];
+    out[0][1] = a[0][1] - b[0][1];
+    out[1][0] = a[1][0] - b[1][0];
+    out[1][1] = a[1][1] - b[1][1];
+}
+
 
 /*2D kalman filter for constant varity*/
 void KM_2d_init(KM_2d_config* _config,double _R, double _Q, double delta_t)
@@ -183,7 +208,7 @@ void KM_2d_init(KM_2d_config* _config,double _R, double _Q, double delta_t)
     _config->H[0] = 1;
     
     _config->next_estimate = double_array_malloc(2, 2);
-    _config->next_estimate[0][1] = _config_->next_estimate[1][0] = 1000;
+    _config->next_estimate[0][1] = _config->next_estimate[1][0] = 1000;
     
     _config->current_estimate = double_array_malloc(2, 2);
     
@@ -218,8 +243,27 @@ void KM_2d_predict(KM_2d_config* _config)
     
 }
 
-void KM_id_update(KM_2d_config* _config,double measure)
+void KM_2d_update(KM_2d_config* _config,double measure)
 {
+    double temp_const = 0;
+    double *temp_1d_array = array_malloc(2);
+    double **temp_2d_array = double_array_malloc(2, 2);
+    
+    array_2d_multiple_with_22(_config->H, _config->current_estimate, temp_1d_array);
+    array_2d_multiple_3(temp_1d_array, _config->H, &temp_const);
+    temp_const = temp_const + _config->R;
+    
+    array_2d_multiple_2(_config->current_estimate,_config->H,temp_1d_array);
+    _config->KM_gain[0] = temp_1d_array[0]/temp_const;
+    _config->KM_gain[1] = temp_1d_array[1]/temp_const;
+    
+    _config->current_output[0] = _config->previous_output[0] + _config->KM_gain[0]*(measure - _config->previous_output[0]);
+    
+    array_2d_multiple_4(_config->KM_gain, _config->H, temp_2d_array);
+    
+    temp_2d_array[0][0] = 1-temp_2d_array[0][0];
+    temp_2d_array[1][1] = 1-temp_2d_array[1][1];
+    array_2d_multiple_1(temp_2d_array, _config->current_estimate, _config->next_estimate);
     
 }
 
