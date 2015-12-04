@@ -39,10 +39,10 @@ void KM_1d_set_Q(KM_1d_config* _config, double _Q);
 void KM_1d_set_R(KM_1d_config* _config, double _R);
 
 /*2D kalman filter for constant varity*/
-void KM_2d_init(KM_1d_config* _config,double _R, double _Q);
-double KM_2d_start(KM_1d_config* _config, double measure);
-void KM_2d_set_Q(KM_1d_config* _config, double _Q);
-void KM_2d_set_R(KM_1d_config* _config, double _R);
+void KM_2d_init(KM_2d_config* _config,double _R, double _Q, double delta_t);
+double* KM_2d_start(KM_2d_config* _config, double measure);
+void KM_2d_set_Q(KM_2d_config* _config, double _Q, double delta_t);
+void KM_2d_set_R(KM_2d_config* _config, double _R);
 
 
 #endif

@@ -17,15 +17,17 @@ void KM_1d_init(KM_1d_config* _config,double _R, double _Q)
     _config->next_estimate = 0;
     
     _config->KM_gain = 0;
+    //printf("current_out:%f ,previous_out:%f ,current_est:%f ,next_est:%f\n",_config->current_output,_config->previous_output,_config->current_estimate,_config->next_estimate);
 }
 
 void KM_1d_predict(KM_1d_config* _config)
 {
     _config->previous_output = _config->current_output;
     _config->current_estimate = _config->next_estimate + _config->Q;
+    //printf("current_out:%f\n",_config->current_output);
 }
 
-void KM_id_update(KM_1d_config* _config,double measure)
+void KM_1d_update(KM_1d_config* _config,double measure)
 {
     _config->KM_gain = _config->current_estimate/(_config->current_estimate + _config->R);
     _config->current_output =  _config->previous_output + _config->KM_gain*(measure - _config->previous_output);
@@ -80,7 +82,7 @@ void double_array_free(double** array)
 
 double* array_malloc(int size)
 {
-    double *array = (double*)calloc(size*sizeof(double));
+    double *array = (double*)calloc(size,sizeof(double));
     
     return array;
 }
@@ -267,7 +269,7 @@ void KM_2d_update(KM_2d_config* _config,double measure)
     
 }
 
-double* KM_2d_start(KM_2d_config* _config, double measure);
+double* KM_2d_start(KM_2d_config* _config, double measure)
 {
     KM_2d_predict(_config);
     
