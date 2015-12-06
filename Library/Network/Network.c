@@ -112,6 +112,22 @@ int Network_connect(int _sock_fd, struct sockaddr_in* _dest, socklen_t address_l
 	return NETWORK_FAIL;
 }
 
+int Network_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
+{
+    int client_fd ;
+    
+    client_fd = accept(sock_fd, addr, addr_len);
+    
+    if (client_fd < 0)
+    {
+        return client_fd;
+    }
+    
+    //TODO: add client fd to link list
+    
+    return client_fd;
+    
+}
 
 int Network_client_setup(int* _sock_fd, struct sockaddr_in* _dest, char* ip_addr, int port)
 {	
@@ -138,7 +154,7 @@ ssize_t Network_recv(NETWORK_CONFIG config, void *buf, size_t size, int flags)
 	int ret = recv(config.fd, buf, size, 0);
 	if (ret <= 0 )
 	{
-		close(config.fd);
+		close(config.fd); //change to Network_disconnect() later.
 		printf("[Network_recv]disconnect occur,re-connect start\n");
 		//	someday need to re-desing this ip address ,not hard code
 		Network_client_setup(&config.fd, &config.server_dest, "192.168.1.104", 1250);
@@ -146,9 +162,21 @@ ssize_t Network_recv(NETWORK_CONFIG config, void *buf, size_t size, int flags)
 	return ret;
 }
 
+void Network_disconnect(int _fd)
+{
+    close(fd);
+    
+    //TODO: remove client fd from link list
+}
+
 int Network_number_of_connection(void)
 {
 	printf("_network_link_data = %d\n",_network_link_data->data->fd);
 	return Link_list_get_size(_network_link_data);
+}
+
+int Network_window_size_adjust(int _fd,int *window_size)
+{
+    return setsockopt(_fd, SOL_TCP, TCP_WINDOW_CLAMP, window_size, sizeof(*window_size));
 }
 
