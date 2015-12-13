@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <strings.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include "Network.h"
 #include "../Link_list/Link_list.h"
 
@@ -18,24 +22,24 @@ LINK_NODE* Network_get_link_data(void)
 	return (LINK_NODE*)_network_link_data;
 }
 
-int8_t Network_server_add_link_data(int fd, struct sockaddr client_addr)
+void Network_server_add_link_data(int fd, struct sockaddr client_addr)
 {
-	NETWORK_CONFIG config;
-	config.fd = fd;
-	config.client_addr = client_addr;
+	NETWORK_CONFIG* config = (NETWORK_CONFIG*)malloc(sizeof(NETWORK_CONFIG));
+	config->fd = fd;
+	config->client_addr = client_addr;
 	
 	if (_network_link_data == NULL)
 	{
 		//Link_list_init_with_LinkList(&config, _network_link_data);
-		_network_link_data = Link_list_init(&config);
+		_network_link_data = Link_list_init(config);
 
 		printf("sector1\n");
-		printf("_network_link_data = %i\n",_network_link_data->fd);
+		//printf("_network_link_data = %i\n",_network_link_data->fd);
 		printf("sector2\n");
 	}
 	else
 	{
-		Link_list_insert_end(_network_link_data, &config);
+		Link_list_insert_end(_network_link_data, config);
 	}
 }
 
@@ -43,14 +47,14 @@ int8_t Network_server_add_link_data(int fd, struct sockaddr client_addr)
 int8_t Network_remove_link_data_by_fd(int fd)
 {
 	LINK_NODE* temp = _network_link_data;
-	printf("_network_link_data = %d\n",_network_link_data->data->fd);
+	//printf("_network_link_data = %d\n",_network_link_data->data->fd);
 
 	while (temp != NULL)
 	{
 		printf("((NETWORK_CONFIG*)(temp->data))->fd = %d\n",((NETWORK_CONFIG*)(_network_link_data->data))->fd);
 		if ((((NETWORK_CONFIG*)temp->data)->fd) == fd)
 		{
-			Link_list_remove_node(_network_link_data, temp);
+			Link_list_remove_node(&_network_link_data, temp);
 			
 			printf("[Neteork_remove_link_data_by_fd]remove one data");
 			return NETWORK_DATA_VALIDATE;
@@ -116,14 +120,15 @@ int Network_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
     int client_fd ;
     
-    client_fd = accept(sock_fd, addr, addr_len);
+    client_fd = accept(sockfd, addr, addrlen);
     
     if (client_fd < 0)
     {
         return client_fd;
     }
     
-    //TODO: add client fd to link list
+    //add client fd to link list
+    Network_server_add_link_data(client_fd, *addr);
     
     return client_fd;
     
@@ -164,19 +169,20 @@ ssize_t Network_recv(NETWORK_CONFIG config, void *buf, size_t size, int flags)
 
 void Network_disconnect(int _fd)
 {
-    close(fd);
+    close(_fd);
     
     //TODO: remove client fd from link list
+    Network_remove_link_data_by_fd(_fd);
 }
 
 int Network_number_of_connection(void)
 {
-	printf("_network_link_data = %d\n",_network_link_data->data->fd);
+	//printf("_network_link_data = %d\n",_network_link_data->data->fd);
 	return Link_list_get_size(_network_link_data);
 }
 
 int Network_window_size_adjust(int _fd,int *window_size)
 {
-    return setsockopt(_fd, SOL_TCP, TCP_WINDOW_CLAMP, window_size, sizeof(*window_size));
+    return 0;//setsockopt(_fd, SOL_TCP, TCP_WINDOW_CLAMP, window_size, sizeof(*window_size));
 }
 

@@ -1,4 +1,4 @@
-#include <wiringPi.h>
+//#include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +30,7 @@ int main()
 {
 	int ret = 0;
 	char* str1="test1";
-	int addr_len = sizeof(client_addr);
+	unsigned int addr_len = sizeof(client_addr);
 
 	printf("socket initial\n");
 	Network_server_setup(&sock_fd, 1250);
@@ -79,7 +79,7 @@ void *Network_handle(void* ptr)
 			printf("disconnect with client\n");
 
 			close(fd);
-			return ;
+			break ;
 		}
 		printf("[Server]recieve %d bytes:%s\n",ret,recv_buf);
 
@@ -88,6 +88,8 @@ void *Network_handle(void* ptr)
 		send(fd, buff, sizeof(buff), 0);
 	//close(client_fd);
 	}
+    
+    return 0;
 }
 
 void *Network_handle2(void* ptr)
@@ -102,5 +104,6 @@ void *Network_handle2(void* ptr)
 
 	send(sock_fd2, recv_buf2, sizeof(recv_buf2), 0);
 
+    return 0;
 	//close(sock_fd2);
 }
