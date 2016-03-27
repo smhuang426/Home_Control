@@ -41,3 +41,19 @@ void Fuzzy_AddBellParametersToInputNumber(int numberOfDataInBell, Bell* bells){
         DLL_insert_data_to_tail(QuantityList, _q);
     }
 }
+
+void NormalizationLayer(int numOfOutput, double *output){
+    
+    int index = 0;
+    double total = 0;
+    
+    for (index = 0; index < numOfOutput; index++){
+        total += output[index];
+    }
+    
+    for (index = 0; index < numOfOutput; index++){
+        output[index] = output[index] / total;
+    }
+
+    
+}
