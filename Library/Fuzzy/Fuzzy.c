@@ -7,13 +7,25 @@
 FUZZIFICATION_LIST* FuzzyList;
 FUZZIFICATION_LIST* QuantityList;
 /*implement function*/
-double FuzzyRecursive(){
-    //TODO:
-}
-
 double Bell_Function(double input,double a,double b,double c)
 {
     return 1 / (1 + pow((input - a)/c, 2*b));
+}
+
+double FuzzyRecursive(DLL_NODE* node, double* input,double* output){
+    
+    double result;
+    int index = DLL_get_index_with_node(FuzzyList,  node);
+    Bell *bells = (Bell*)(node->data);
+    
+    if (node->next != NULL){
+        result = Bell_Function(input[index], bells[0].width, bells[0].slope, bells[0].center) * FuzzyRecursive(node->next, input, output);
+    }else{
+        result = Bell_Function(input[index], bells[0].width, bells[0].slope, bells[0].center);
+    }
+    
+    return result;
+    //TODO:
 }
 
 void Fuzzy_AddBellParametersToInputNumber(int numberOfDataInBell, Bell* bells){
