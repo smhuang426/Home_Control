@@ -4,8 +4,13 @@
 #include <string.h>
 #include "Fuzzy.h"
 
+/*declair parameter*/
 FUZZIFICATION_LIST* FuzzyList;
 FUZZIFICATION_LIST* QuantityList;
+
+typedef double (*callBack)(double* agrs);
+callBack *ack_base;
+
 /*implement function*/
 double Bell_Function(double input,double a,double b,double c)
 {
@@ -25,7 +30,7 @@ double FuzzyRecursive(DLL_NODE* node, double* input,double* output){
     }
     
     return result;
-    //TODO:
+    //TODO
 }
 
 void Fuzzy_AddBellParametersToInputNumber(int numberOfDataInBell, Bell* bells){
@@ -40,6 +45,23 @@ void Fuzzy_AddBellParametersToInputNumber(int numberOfDataInBell, Bell* bells){
         DLL_insert_data_to_tail(FuzzyList, bells);
         DLL_insert_data_to_tail(QuantityList, _q);
     }
+}
+
+void Fuzzy_DefuzzicationInit(){
+    
+    if (QuantityList != NULL){
+        int num_of_callback = 1, iter = 0;
+        iter = DLL_get_number_of_data(QuantityList);
+        
+        DLL_NODE* node = QuantityList->head;
+        while (node != NULL) {
+            num_of_callback *= *(int*)(node->data);
+            node = node->next;
+        }
+        
+        ack_base = (callBack*)realloc(ack_base,num_of_callback*sizeof(callBack));
+    }
+
 }
 
 void NormalizationLayer(int numOfOutput, double *output){
